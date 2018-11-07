@@ -23,6 +23,10 @@ python/pyweld/pyweld.egg-info/
 python/grizzly/build
 python/grizzly/pygrizzly.egg-info/
 python/numpy/weldnumpy.egg-info/
+python/pyweld/build/
+python/pyweld/dist/
+python/numpy/build/
+python/sklearn/build/
 
 # Ignore Weld, SIR, and assembly programs - force add these for special cases (e.g., tests).
 *.weld
