@@ -141,7 +141,7 @@ impl HasPointer for Type {
 pub fn compile_program(program: &Program, conf: &ParsedConf, stats: &mut CompilationStats)
         -> WeldResult<CompiledModule> {
     let mut expr = syntax::macro_processor::process_program(program)?;
-    debug!("After macro substitution:\n{}\n", expr.pretty_print());
+    println!("After macro substitution:\n{}\n", expr.pretty_print());
 
     let start = PreciseTime::now();
     expr.uniquify()?;
@@ -152,7 +152,7 @@ pub fn compile_program(program: &Program, conf: &ParsedConf, stats: &mut Compila
     let start = PreciseTime::now();
     expr.infer_types()?;
     let end = PreciseTime::now();
-    debug!("After type inference:\n{}\n", expr.pretty_print());
+    println!("After type inference:\n{}\n", expr.pretty_print());
     stats.weld_times.push(("Type Inference".to_string(), start.to(end)));
 
     apply_opt_passes(&mut expr, &conf.optimization_passes, stats, conf.enable_experimental_passes)?;
@@ -164,12 +164,12 @@ pub fn compile_program(program: &Program, conf: &ParsedConf, stats: &mut Compila
 
     stats.weld_times.push(("Uniquify outside Passes".to_string(), uniquify_dur));
 
-    debug!("Optimized Weld program:\n{}\n", expr.pretty_print());
+    println!("Optimized Weld program:\n{}\n", expr.pretty_print());
 
     let start = PreciseTime::now();
     let mut sir_prog = sir::ast_to_sir(&expr, conf.support_multithread)?;
     let end = PreciseTime::now();
-    debug!("SIR program:\n{}\n", &sir_prog);
+    println!("SIR program:\n{}\n", &sir_prog);
     stats.weld_times.push(("AST to SIR".to_string(), start.to(end)));
 
     // Optimizations over the SIR.
@@ -177,11 +177,11 @@ pub fn compile_program(program: &Program, conf: &ParsedConf, stats: &mut Compila
     // be useful.
     let start = PreciseTime::now();
     if conf.enable_sir_opt {
-        info!("Applying SIR optimizations");
+        println!("Applying SIR optimizations");
         optimizations::fold_constants::fold_constants(&mut sir_prog)?;
     }
     let end = PreciseTime::now();
-    debug!("Optimized SIR program:\n{}\n", &sir_prog);
+    println!("Optimized SIR program:\n{}\n", &sir_prog);
     stats.weld_times.push(("SIR Optimization".to_string(), start.to(end)));
 
     let start = PreciseTime::now();
@@ -190,36 +190,36 @@ pub fn compile_program(program: &Program, conf: &ParsedConf, stats: &mut Compila
     gen.trace_run = conf.trace_run;
 
     if !gen.multithreaded {
-        info!("Generating code without multithreading support");
+        println!("Generating code without multithreading support");
     }
 
     if gen.trace_run {
-        info!("Generating code with SIR tracing");
+        println!("Generating code with SIR tracing");
     }
 
     gen.add_function_on_pointers("run", &sir_prog)?;
     let llvm_code = gen.result();
     let end = PreciseTime::now();
-    trace!("LLVM program:\n{}\n", &llvm_code);
+    println!("LLVM program:\n{}\n", &llvm_code);
     stats.weld_times.push(("LLVM Codegen".to_string(), start.to(end)));
 
     let ref timestamp = format!("{}", time::now().to_timespec().sec);
 
     // Dump files if needed. Do this here in case the actual LLVM code gen fails.
     if conf.dump_code.enabled {
-        info!("Writing code to directory '{}' with timestamp {}", &conf.dump_code.dir.display(), timestamp);
+        println!("Writing code to directory '{}' with timestamp {}", &conf.dump_code.dir.display(), timestamp);
         write_code(expr.pretty_print().as_ref(), "weld", timestamp, &conf.dump_code.dir);
         write_code(&format!("{}", &sir_prog), "sir", timestamp, &conf.dump_code.dir);
         write_code(&llvm_code, "ll", timestamp, &conf.dump_code.dir);
     }
 
-    debug!("Started compiling LLVM");
+    println!("Started compiling LLVM");
     let compiled = try!(easy_ll::compile_module(
         &llvm_code,
         conf.llvm_optimization_level,
         conf.dump_code.enabled,
         Some(WELD_INLINE_LIB)));
-    debug!("Done compiling LLVM");
+    println!("Done compiling LLVM");
 
     let module = compiled.module;
     let llvm_times = compiled.timing;
@@ -230,13 +230,13 @@ pub fn compile_program(program: &Program, conf: &ParsedConf, stats: &mut Compila
         stats.llvm_times.push((name.clone(), time.clone()));
     }
 
-    debug!("Started runtime_init call");
+    println!("Started runtime_init call");
     let start = PreciseTime::now();
     unsafe {
         runtime::weld_runtime_init();
     }
     let end = PreciseTime::now();
-    debug!("Done runtime_init call");
+    println!("Done runtime_init call");
     stats.weld_times.push(("Runtime Init".to_string(), start.to(end)));
 
     // Dump remaining files if needed.

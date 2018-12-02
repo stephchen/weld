@@ -164,7 +164,7 @@ pub fn compile_module(
         if context.is_null() {
             return Err(LlvmError::new("LLVMContextCreate returned null"));
         }
-        debug!("Done creating LLVM context");
+        println!("Done creating LLVM context");
 
         let start = PreciseTime::now();
         // Create a CompiledModule to wrap the context and our result (will clean it on Drop).
@@ -178,15 +178,15 @@ pub fn compile_module(
         let module = parse_module_str(context, code)?;
         let end = PreciseTime::now();
         timing.times.push(("IR Parsing".to_string(), start.to(end)));
-        debug!("Done parsing module");
+        println!("Done parsing module");
 
         // Parse the bytecode file and link it.
         let start = PreciseTime::now();
         if let Some(s) = bc_file {
             let bc_module = parse_module_bytes(context, s)?;
-            debug!("Done parsing bytecode file");
+            println!("Done parsing bytecode file");
             llvm::linker::LLVMLinkModules2(module, bc_module);
-            debug!("Done linking bytecode file");
+            println!("Done linking bytecode file");
         }
         let end = PreciseTime::now();
         timing.times.push(("Bytecode Linking".to_string(), start.to(end)));
@@ -197,21 +197,21 @@ pub fn compile_module(
         check_run_function(module)?;
         let end = PreciseTime::now();
         timing.times.push(("Module Verification".to_string(), start.to(end)));
-        debug!("Done validating module");
+        println!("Done validating module");
 
         // Optimize the module.
         let start = PreciseTime::now();
         optimize_module(module, optimization_level)?;
         let end = PreciseTime::now();
         timing.times.push(("Module Optimization".to_string(), start.to(end)));
-        debug!("Done optimizing module");
+        println!("Done optimizing module");
 
         // Create an execution engine for the module and find its run function
         let start = PreciseTime::now();
         let engine = create_exec_engine(module, optimization_level)?;
         let end = PreciseTime::now();
         timing.times.push(("Create Exec Engine".to_string(), start.to(end)));
-        debug!("Done creating execution engine");
+        println!("Done creating execution engine");
 
         // Find the run function
         let start = PreciseTime::now();
@@ -219,7 +219,7 @@ pub fn compile_module(
         result.run_function = Some(find_function(engine, "run")?);
         let end = PreciseTime::now();
         timing.times.push(("Find Run Func Address".to_string(), start.to(end)));
-        debug!("Done generating/finding run function");
+        println!("Done generating/finding run function");
 
         let code = if dump_code {
             let ir = output_llvm_ir(module)?;
