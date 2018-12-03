@@ -27,6 +27,7 @@ python/numpy/build
 python/pyweld/build
 python/pyweld/dist
 python/sklearn/build
+python/sklearn/weldsklearn.egg-info/
 
 
 llvmext/test

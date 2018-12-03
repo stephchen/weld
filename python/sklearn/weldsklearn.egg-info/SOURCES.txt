@@ -1,11 +1,9 @@
 setup.py
 weldsklearn/__init__.py
+weldsklearn/data_transform.py
+weldsklearn/logistic_regression.py
 weldsklearn.egg-info/PKG-INFO
 weldsklearn.egg-info/SOURCES.txt
 weldsklearn.egg-info/dependency_links.txt
 weldsklearn.egg-info/requires.txt
 weldsklearn.egg-info/top_level.txt
-weldsklearn/featurizers/__init__.py
-weldsklearn/models/__init__.py
-weldsklearn/preprocessing/__init__.py
-weldsklearn/preprocessing/data_transform.py

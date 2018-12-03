@@ -9,12 +9,16 @@ from weld.weldobject import *
 
 # TODO build out base
 class WeldStandardScaler(object):
+    def __init__(self, weldobj=None):
+        # precompile? need to string all together and evaluate at end
+        pass
+
 
     def fit(self, x, y=None):
         # y is ignored
         assert(type(x) == np.ndarray)
 
-        self.mean = np.mean(x, axis=0, keepdims=True, dtype=np.float32)
+        self.mean = np.mean(x, axis=0, keepdims=True, dtype=np.float32)     # todo this needs to be in weld
         self.std = np.std(x, axis=0, keepdims=True, dtype=np.float32)
         return self
 
@@ -35,5 +39,9 @@ class WeldStandardScaler(object):
         )"""
 
         weldobj.weld_code = template.format(xweld, meanweld, stdweld)
-        return weldobj.evaluate(WeldVec(WeldVec(WeldFloat())))
+        return weldobj.evaluate(WeldVec(WeldVec(WeldFloat())))          # todo return just the weldvec
+
+
+
+
 
