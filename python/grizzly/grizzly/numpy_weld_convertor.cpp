@@ -234,6 +234,7 @@ weld::vec<weld::vec<double> > numpy_to_weld_double_arr_arr(PyObject* in, int num
   return t;
 }
 
+extern "C"
 weld::vec<weld::vec<float> > numpy_to_weld_float_arr_arr(PyObject* in) {
     PyArrayObject* inp = (PyArrayObject*) in;
     int64_t dimension1 = (int64_t) PyArray_DIMS(inp)[0];

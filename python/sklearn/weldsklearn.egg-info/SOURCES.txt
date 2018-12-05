@@ -1,7 +1,14 @@
 setup.py
+weldsklearn/Makefile
 weldsklearn/__init__.py
+weldsklearn/common.h
 weldsklearn/data_transform.py
+weldsklearn/encoders.py
 weldsklearn/logistic_regression.py
+weldsklearn/numpy_weld_convertor.cpp
+weldsklearn/pipeline.py
+weldsklearn/types.py
+weldsklearn/util.py
 weldsklearn.egg-info/PKG-INFO
 weldsklearn.egg-info/SOURCES.txt
 weldsklearn.egg-info/dependency_links.txt

@@ -1,8 +1,6 @@
-
 import numpy as np
 
-# from weld.encoders import NumpyArrayEncoder, NumpyArrayDecoder
-from grizzly.encoders import NumPyEncoder, NumPyDecoder
+from grizzly.encoders import *
 import weldnumpy
 from weld.weldobject import *
 
@@ -18,7 +16,7 @@ class WeldStandardScaler(object):
         # y is ignored
         assert(type(x) == np.ndarray)
 
-        self.mean = np.mean(x, axis=0, keepdims=True, dtype=np.float32)     # todo this needs to be in weld
+        self.mean = np.mean(x, axis=0, keepdims=True, dtype=np.float32)
         self.std = np.std(x, axis=0, keepdims=True, dtype=np.float32)
         return self
 
@@ -31,14 +29,18 @@ class WeldStandardScaler(object):
 
         stdweld = weldobj.update(self.std[0], WeldVec(WeldFloat()))
 
-        template = """map({0}, |e|
+        template = """map(%(xweld)s, |e|
             map(
-                zip(map(zip(e, {1}), |p| p.$0 - p.$1), {2}
+                zip(map(zip(e, %(meanweld)s), |p| p.$0 - p.$1), %(stdweld)s
                 ), |q| if(q.$1 == 0.0f, q.$0, q.$0 / q.$1)
             )
         )"""
 
-        weldobj.weld_code = template.format(xweld, meanweld, stdweld)
+        weldobj.weld_code = template % {
+            'xweld': xweld,
+            'meanweld': meanweld,
+            'stdweld': stdweld
+        }
         return weldobj.evaluate(WeldVec(WeldVec(WeldFloat())))          # todo return just the weldvec
 
 

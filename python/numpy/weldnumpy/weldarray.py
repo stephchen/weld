@@ -465,7 +465,7 @@ class weldarray(np.ndarray):
         @other, scalar values (i32, i64, f32, f64).
         @result: weldarray to store results in.
         '''
-        template = 'map({arr}, |z: {type}| z {binop} {other}{suffix})'
+        template = 'map({arr}, |z: {type}| z {binop} {other}{suffix})'              # @@@@
         weld_type = result._weld_type.__str__()
         result.weldobj.weld_code = template.format(arr = result.weldobj.weld_code,
                                                   type =  weld_type,
