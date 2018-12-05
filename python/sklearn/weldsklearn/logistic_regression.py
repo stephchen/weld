@@ -13,15 +13,12 @@ class WeldLogisticRegression(object):
         self.lam = float(lam)
         self.stop_tol = stop_tol
 
-    def fit(self, x, y):        # todo x is required to be a matrix here (i think this is ok, just have brittle types)
-        assert(type(x) == np.ndarray)
-        assert(type(y) == np.ndarray)
+    def fit(self, x, y, weldobj=None):        # todo x is required to be a matrix here (i think this is ok, just have brittle types)
+        self.weldobj = weldobj if weldobj else WeldObject(NumPyEncoder(), NumPyDecoder())
 
         m, n = x.shape
         th = np.zeros(n, dtype=np.float32)
         idxs = np.arange(m, dtype=np.int64)
-
-        weldobj = WeldObject(NumPyEncoder(), NumPyDecoder())
 
         # pregenerate idxs
         isamps = np.random.choice(idxs, self.n_iters, replace=True)
@@ -51,7 +48,7 @@ class WeldLogisticRegression(object):
             }, p.$1 < i64(%(niters)s) }).$2"""
 
 
-        weldobj.weld_code = template % {
+        self.weldobj.weld_code = template % {
             'niters': str(self.n_iters),
             'isamps': weldobj.update(isamps, WeldVec(WeldLong())),
             'th':weldobj.update(th, WeldVec(WeldFloat())),
@@ -61,7 +58,7 @@ class WeldLogisticRegression(object):
             'm': str(float(m)),
             'lam': str(float(self.lam))
         }
-        self.th = weldobj.evaluate(WeldVec(WeldFloat()))
+        self.th = self.weldobj.evaluate(WeldVec(WeldFloat()))
 
         return self
 

@@ -439,7 +439,7 @@ class weldarray(np.ndarray):
             @res: weldarray to be updated.
             @unop: str, operator applied to res.
             '''
-            template = 'map({arr}, |z : {type}| {unop}(z))'
+            template = 'map({arr}, |z : {type}| {unop}(z))'             # @@@@
             code = template.format(arr  = res.weldobj.weld_code,
                                    type = res._weld_type.__str__(),
                                    unop = unop)
