@@ -50,11 +50,11 @@ class WeldLogisticRegression(object):
 
         self.weldobj.weld_code = template % {
             'niters': str(self.n_iters),
-            'isamps': weldobj.update(isamps, WeldVec(WeldLong())),
-            'th':weldobj.update(th, WeldVec(WeldFloat())),
+            'isamps': self.weldobj.update(isamps, WeldVec(WeldLong())),
+            'th': self.weldobj.update(th, WeldVec(WeldFloat())),
             'th_len': str(len(th)),
-            'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))),
-            'y': weldobj.update(y, WeldVec(WeldFloat())),
+            'x': self.weldobj.update(x, WeldVec(WeldVec(WeldFloat()))),
+            'y': self.weldobj.update(y, WeldVec(WeldFloat())),
             'm': str(float(m)),
             'lam': str(float(self.lam))
         }
