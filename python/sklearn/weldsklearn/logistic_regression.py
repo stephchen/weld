@@ -21,49 +21,13 @@ class WeldLogisticRegression(object):
         assert(type(y) == np.ndarray)
 
         m, n = x.shape
-        th = np.transpose(np.zeros(n))
+        th = np.zeros(n, dtype=np.float32)
         idxs = np.arange(m, dtype=np.int64)
 
         weldobj = WeldObject(NumPyEncoder(), NumPyDecoder())
 
         # pregenerate idxs
         isamps = np.random.choice(idxs, self.n_iters, replace=True)
-
-        # template = """
-        #   @(loopsize: %(niters)sL)
-        #   iterate(
-        #     {%(isamps)s, 0, %(th)s},
-        #     |p| { {
-        #       let i = lookup(p.$0, p.$1);
-        #       let xi = lookup(%(x)s, i);
-        #       let step = if(p.$1 > 0, 1 / sqrt(p.$1), 1.0);
-        #       let hx = 1 / (1 + exp(0 - result(
-        #         @(loopsize: %(th_len)sL)
-        #         for(
-        #           zip(p.$2, xi),
-        #           merger[f32, +],
-        #           |b, i, e| merge(b, e.$0 * e.$1)
-        #           )
-        #         ))) - lookup(%(y)s, i);
-        #       map(
-        #         p.$2, |th| th - step * (result(
-        #           map(zip(p.$2, xi), |p2| p2.$0 - step * (hx * p2.$1 / %(m)s + %(lam)s / %(m)s * p2.$0))
-        #         ))
-        #       )
-        #     }, p.$1 < %(niters)s }.$2
-        #   )"""
-
-        # weldobj.weld_code = template % {
-        #     'niters': str(self.n_iters),
-        #     'isamps': weldobj.update(isamps, WeldVec(WeldFloat())),
-        #     'th':weldobj.update(th, WeldVec(WeldFloat())),
-        #     'th_len': str(len(th)),
-        #     'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))),
-        #     'y': weldobj.update(y, WeldVec(WeldFloat())),
-        #     'm': str(float(m)),
-        #     'lam': str(float(self.lam))
-        # }
-
 
         template = """
           @(loopsize: %(niters)sL)
@@ -77,14 +41,14 @@ class WeldLogisticRegression(object):
                 let hx = f64(1) / (f64(1) + exp(f64(0) - f64(result(
                   @(loopsize: %(th_len)sL)
                   for(
-                    [f32(1)],
+                    zip(p.$2, xi),
                     merger[f32, +],
-                    |b, ii, e| merge(b, e)
-
+                    |b, ii, e| merge(b, e.$0 * e.$1)
                   )
                 )))) - f64(lookup(%(y)s, i));
-
-                p.$2
+                result(for(
+                  p.$2, appender[f32], |b, j, e| merge(b, e - f32(step) * (f32(hx) * lookup(xi, j) / f32(%(m)s) + f32(%(lam)s) / f32(%(m)s) * e))
+                ))
             }, p.$1 < i64(%(niters)s) }).$2"""
 
         weldobj.weld_code = template % {
@@ -94,8 +58,8 @@ class WeldLogisticRegression(object):
             'th_len': str(len(th)),
             'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))),
             'y': weldobj.update(y, WeldVec(WeldFloat())),
-            # 'm': str(float(m)),
-            # 'lam': str(float(self.lam))
+            'm': str(float(m)),
+            'lam': str(float(self.lam))
         }
 
 
