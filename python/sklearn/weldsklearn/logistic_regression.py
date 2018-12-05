@@ -13,9 +13,6 @@ class WeldLogisticRegression(object):
         self.lam = float(lam)
         self.stop_tol = stop_tol
 
-    def _sig(self, z):
-        return 1.0 / (1 + np.exp(-z))   # todo this needs to be folded in, python fn calls are slow
-
     def fit(self, x, y):        # todo x is required to be a matrix here (i think this is ok, just have brittle types)
         assert(type(x) == np.ndarray)
         assert(type(y) == np.ndarray)
@@ -37,19 +34,22 @@ class WeldLogisticRegression(object):
               p.$0, p.$1 + i64(1),
                 let i = lookup(p.$0, p.$1);
                 let xi = lookup(%(x)s, i);
-                let step = if(p.$1 > i64(0), f64(1) / sqrt(f64(p.$1)), f64(1));
-                let hx = f64(1) / (f64(1) + exp(f64(0) - f64(result(
+                let step = if(p.$1 > i64(0), f32(1) / sqrt(f32(p.$1)), f32(1));
+                let hx = f32(1) / (f32(1) + exp(f32(0) - f32(result(
                   @(loopsize: %(th_len)sL)
                   for(
                     zip(p.$2, xi),
                     merger[f32, +],
                     |b, ii, e| merge(b, e.$0 * e.$1)
                   )
-                )))) - f64(lookup(%(y)s, i));
-                result(for(
-                  p.$2, appender[f32], |b, j, e| merge(b, e - f32(step) * (f32(hx) * lookup(xi, j) / f32(%(m)s) + f32(%(lam)s) / f32(%(m)s) * e))
-                ))
+                )))) - f32(lookup(%(y)s, i));
+
+                result(@(loopsize: %(th_len)sL)
+                  for(
+                    p.$2, appender[f32], |b, j, e| merge(b, e - f32(step) * (f32(hx) * lookup(xi, j) / f32(%(m)s) + f32(%(lam)s) / f32(%(m)s) * e))
+                  ))
             }, p.$1 < i64(%(niters)s) }).$2"""
+
 
         weldobj.weld_code = template % {
             'niters': str(self.n_iters),
@@ -61,16 +61,6 @@ class WeldLogisticRegression(object):
             'm': str(float(m)),
             'lam': str(float(self.lam))
         }
-
-
-
-
-
-
-
-
-
-
         self.th = weldobj.evaluate(WeldVec(WeldFloat()))
 
         return self

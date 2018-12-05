@@ -340,7 +340,6 @@ impl WeldModule {
         stats.weld_times.push(("Parsing".to_string(), start.to(end)));
 
         let module = codegen::llvm::compile_program(&program, parsed_conf, &mut stats)?;
-        println!("@@@@@ COMPILING");
         debug!("\n{}\n", stats.pretty_print());
 
         Ok(WeldModule { llvm_module: module })
