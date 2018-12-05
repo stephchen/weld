@@ -19,7 +19,7 @@ class BinaryDistribution(Distribution):
 
 setup(name='weldsklearn',
       version='0.0.1',
-      packages=['weldsklearn', 'weldsklearn.preprocessing', 'weldsklearn.models', 'weldsklearn.featurizers'],
+      packages=['weldsklearn'],
       cmdclass={"install": Install},
       distclass=BinaryDistribution,
       install_requires=['pyweld'])

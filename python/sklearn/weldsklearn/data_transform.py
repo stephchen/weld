@@ -1,14 +1,16 @@
-
 import numpy as np
 
-# from weld.encoders import NumpyArrayEncoder, NumpyArrayDecoder
-from grizzly.encoders import NumPyEncoder, NumPyDecoder
+from grizzly.encoders import *
 import weldnumpy
 from weld.weldobject import *
 
 
 # TODO build out base
 class WeldStandardScaler(object):
+    def __init__(self, weldobj=None):
+        # precompile? need to string all together and evaluate at end
+        pass
+
 
     def fit(self, x, y=None):
         # y is ignored
@@ -27,13 +29,21 @@ class WeldStandardScaler(object):
 
         stdweld = weldobj.update(self.std[0], WeldVec(WeldFloat()))
 
-        template = """map({0}, |e|
+        template = """map(%(xweld)s, |e|
             map(
-                zip(map(zip(e, {1}), |p| p.$0 - p.$1), {2}
+                zip(map(zip(e, %(meanweld)s), |p| p.$0 - p.$1), %(stdweld)s
                 ), |q| if(q.$1 == 0.0f, q.$0, q.$0 / q.$1)
             )
         )"""
 
-        weldobj.weld_code = template.format(xweld, meanweld, stdweld)
-        return weldobj.evaluate(WeldVec(WeldVec(WeldFloat())))
+        weldobj.weld_code = template % {
+            'xweld': xweld,
+            'meanweld': meanweld,
+            'stdweld': stdweld
+        }
+        return weldobj.evaluate(WeldVec(WeldVec(WeldFloat())))          # todo return just the weldvec
+
+
+
+
 

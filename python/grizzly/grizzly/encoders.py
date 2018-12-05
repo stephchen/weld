@@ -84,6 +84,7 @@ class NumPyEncoder(WeldObjectEncoder):
         elif isinstance(obj, str):
             base = WeldVec(WeldChar())
         else:
+            print obj
             raise Exception("Invalid object type: unable to infer NVL type")
         return base
 
