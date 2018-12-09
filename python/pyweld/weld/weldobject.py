@@ -10,6 +10,7 @@ import time
 
 from . import bindings as cweld
 from .types import *
+import numpy as np
 
 
 class WeldObjectEncoder(object):
@@ -114,6 +115,17 @@ class WeldObject(object):
         """
         if isinstance(value, WeldObject):
             self.context.update(value.context)
+        elif isinstance(value, np.ndarray):
+            value.flags.writeable = False
+            h = hash(value.data)
+            if h in WeldObject._registry:
+                name = WeldObject._registry[h]
+            else:
+                name = WeldObject.generate_input_name(h)
+            self.context[name] = value
+            if tys is not None and not override:
+                self.argtypes[name] = tys
+            return name
         else:
             # Ensure that the same inputs always have same names
             value_str = str(value)
