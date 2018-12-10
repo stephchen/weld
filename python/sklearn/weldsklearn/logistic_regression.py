@@ -6,6 +6,8 @@ import util
 import math
 import numpy as np
 
+import random
+
 
 class WeldLogisticRegression(object):
     def __init__(self, n_iters=1000, lam=0.0001, stop_tol=1e-3):
@@ -45,7 +47,7 @@ class WeldLogisticRegression(object):
                   for(
                     p.$2, appender[f32], |b, j, e| merge(b, e - f32(step) * (f32(hx) * lookup(xi, j) / f32(%(m)s) + f32(%(lam)s) / f32(%(m)s) * e))
                   ))
-            }, p.$1 < i64(%(niters)s) }).$2"""
+            }, p.$1 < i64(%(niters)s) - 1L }).$2"""
 
 
         self.weldobj.weld_code = template % {
