@@ -70,15 +70,56 @@ class WeldLogisticRegression(object):
 
 
     def predict(self, x):
-        # we require x to be a vector (ie single sample) here, since optimizing for single inference requests (todo batch?)
-        ret_ = self._sig(util.dot_vv(self.th, x))
+        template = """
+            f32(1) / (f32(1) + exp(f32(0) - result(
+                @(loopsize: %(th_len)sL)
+                for(
+                    zip(%(th)s, %(x)s),
+                    merger[f32, +],
+                    |b, i, e| merge(b, e.$0 * e.$1)
+                )
+            )))
+        """
+        weldobj = WeldObject(NumPyEncoder(), NumPyDecoder())
+        weldobj.weld_code = template % {
+            'th': weldobj.update(self.th, WeldVec(WeldFloat())),
+            'x': weldobj.update(x, WeldVec(WeldFloat())),
+            'th_len': str(len(self.th))
+        }
+
+        ret_ = weldobj.evaluate(WeldFloat(), verbose=False)
         return 1.0 if ret_ >= 0.5 else 0.0
 
 
     def score(self, x, y):
-        # todo for this to be useful we need batch predict, otherwise just clientside check is fine
-        pass
+        template = """
+            @(loopsize: %(xlen)sL)
+            result(for(
+                zip(%(x)s, %(y)s),
+                merger[f32, +],
+                |b, i, e| let res = f32(1) / (f32(1) + exp(f32(0) - result(
+                    @(loopsize: %(thlen)sL)
+                    for(
+                        zip(%(th)s, e.$0),
+                        merger[f32, +],
+                        |b2, i2, e2| merge(b2, e2.$0 * e2.$1)
+                    )
+                )));
+                if(res >= f32(0.5) && e.$1 == f32(1.0), merge(b, f32(1)), merge(b, f32(0)))
+            ))
+        """
 
+        weldobj = WeldObject(NumPyEncoder(), NumPyDecoder())
+        weldobj.weld_code = template % {
+            'th': weldobj.update(self.th, WeldVec(WeldFloat())),    # 4
+            'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))), # 5
+            'y': weldobj.update(y, WeldVec(WeldFloat())), # 6
+            'xlen': str(len(x)),
+            'thlen': str(len(self.th))
+        }
 
+        score = weldobj.evaluate(WeldFloat())
+
+        return score / len(x)
 
 

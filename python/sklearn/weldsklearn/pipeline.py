@@ -21,12 +21,21 @@ class WeldPipeline(object):
 
 
     def transform(self, x):
-        pass
+        xt = x
+        for tf in self.transformers:
+            tf.fit(xt, y, weldobj=self.weldobj)
+            xt = tf.transform(xt, weldobj=self.weldobj)
+        if len(x.shape) == 1:
+            return self.weldobj.evaluate(WeldVec(WeldFloat()))
+        elif len(x.shape) == 2:
+            return self.weldobj.evaluate(WeldVec(WeldVec(WeldFloat())))
 
 
     def predict(self, x):
-        pass
+        xt = self.transform(x, weldobj=self.weldobj)
+        return self.classifier.predict(xt, weldobj=self.weldobj)
 
 
     def score(self, x, y):
-        pass
+        xt = self.transform(x, weldobj=self.weldobj)
+        return self.classifier.score(xt, y, weldobj=self.weldobj)
