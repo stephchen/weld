@@ -45,5 +45,20 @@ class WeldStandardScaler(object):
 
 
 
+class WeldOneHotEncoder(object):
+    def fit(self, x, y=None):
+        # y ignored
+
+
+        return self
+
+    def transform(self, x):
+        pass
+
+
+class WeldBinarizer(object):
+    pass
+    # set feature values to 0 or 1 acc to threshold
+
 
 

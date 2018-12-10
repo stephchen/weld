@@ -13,9 +13,6 @@ class WeldLogisticRegression(object):
         self.lam = float(lam)
         self.stop_tol = stop_tol
 
-    def _sig(self, z):
-        return 1.0 / (1 + np.exp(-z))
-
     def fit(self, x, y):       
         assert(type(x) == np.ndarray)
         assert(type(y) == np.ndarray)
@@ -56,14 +53,15 @@ class WeldLogisticRegression(object):
 
         weldobj.weld_code = template % {
             'niters': str(self.n_iters),
-            'isamps': weldobj.update(isamps, WeldVec(WeldLong())),
-            'th':weldobj.update(th, WeldVec(WeldFloat())),
+            'isamps': weldobj.update(isamps, WeldVec(WeldLong())), # 0
+            'th':weldobj.update(th, WeldVec(WeldFloat())), # 1
             'th_len': str(len(th)),
-            'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))),
-            'y': weldobj.update(y, WeldVec(WeldFloat())),
+            'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))), # 2
+            'y': weldobj.update(y, WeldVec(WeldFloat())), # 3
             'm': str(float(m)),
             'lam': str(float(self.lam))
         }
+
         self.th = weldobj.evaluate(WeldVec(WeldFloat()))
 
         return self
@@ -115,16 +113,14 @@ class WeldLogisticRegression(object):
 
         weldobj = WeldObject(NumPyEncoder(), NumPyDecoder())
         weldobj.weld_code = template % {
-            'th': weldobj.update(self.th, WeldVec(WeldFloat())),
-            'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))),
-            'y': weldobj.update(y, WeldVec(WeldFloat())),
+            'th': weldobj.update(self.th, WeldVec(WeldFloat())),    # 4
+            'x': weldobj.update(x, WeldVec(WeldVec(WeldFloat()))), # 5
+            'y': weldobj.update(y, WeldVec(WeldFloat())), # 6
             'xlen': str(len(x)),
             'thlen': str(len(self.th))
         }
 
         score = weldobj.evaluate(WeldFloat())
-
-        print score
 
         return score / len(x)
 
