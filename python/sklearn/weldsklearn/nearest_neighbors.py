@@ -147,8 +147,8 @@ class NaiveKNeighbors(object):
         closest = None
         mindist = float('inf')
         for i, xt in enumerate(self.xtrain):
-            # dist = np.linalg.norm(x - xt)
-            dist = sum([(xi - xti) * (xi - xti) for xi, xti in zip(x, xt)])
+            dist = np.linalg.norm(x - xt)
+            # dist = sum([(xi - xti) * (xi - xti) for xi, xti in zip(x, xt)])
             if dist < mindist:
                 mindist = dist
                 closest = i
@@ -161,7 +161,6 @@ class NaiveKNeighbors(object):
             pred = self.predict(xt)
             if pred == y[i]:
                 score += 1
-            print i
         return float(score) / len(x)
 
 
